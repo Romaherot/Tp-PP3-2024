@@ -1,0 +1,3 @@
+/Users/fran/Documents/Paradigmas de Programacion 2/TpPP32024/cmake-build-debug/CMakeFiles/TpPP32024.dir
+/Users/fran/Documents/Paradigmas de Programacion 2/TpPP32024/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/fran/Documents/Paradigmas de Programacion 2/TpPP32024/cmake-build-debug/CMakeFiles/rebuild_cache.dir
