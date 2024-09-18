@@ -177,7 +177,7 @@ public:
 };
 
 // Clase contenedora para Inscripciones
-class GestorInscripciones : Gestor<Inscripcion> {
+class GestorInscripciones : public Gestor<Inscripcion> {
 
 public:
     // Sobrecarga de operadores para comparar el número total de inscripciones
@@ -195,6 +195,7 @@ private:
     Gestor<Evento>* todosEventos;
     Gestor<Conferencia>* todasConferencias;
     Gestor<Conferencista>* todosConferencistas;
+    Gestor<Asistente>* todosAsistentes;
     char eleccion;
 public:
     Menu(GestorInscripciones* i, Gestor<Evento>* e, Gestor<Conferencia>* g) : todasInscripciones(i), todosEventos(e), todasConferencias(g) {}
@@ -257,7 +258,7 @@ public:
         cin >> descripcion;
         cout << "Horario de la conferencia: ";
         cin >> horario;
-        cout << "Seleccione el conferencista de la conferencia: ";
+        cout << "Seleccione el conferencista de la conferencia: " << endl;
         conferencista= todosConferencistas->seleccionarItem();
         conferencia = new Conferencia(titulo, descripcion, horario, conferencista);
         todasConferencias->agregarItem(conferencia);
@@ -269,7 +270,22 @@ public:
 
     };
     void PantallaInscripciones(){
-        Evento* evento;
+        Asistente* a;
+        cout<< "[M]ostrar inscripciones, [A]gregar inscripciones, [B]orrar inscripciones" << endl;
+        cin>>eleccion
+        switch (eleccion) {
+            case 'M':
+                todasInscripciones->mostrarItems();
+                break;
+            case 'A':
+                cout << "Seleccione el asistente a agregar: "<< endl;
+                a = todosAsistentes->seleccionarItem();
+                break;
+            case 'B':
+                break;
+
+        }
+
 
     };
 
