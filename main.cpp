@@ -2,6 +2,86 @@
 #include <vector>
 #include <string>
 using namespace std;
+class Evento;
+class Conferencia;
+class Conferencista;
+class Inscripcion;
+class Asistente;
+template <typename T>
+
+class Gestor {
+protected:
+    vector<T*> items;
+
+public:
+    // Agregar un item a la lista
+    void agregarItem(T* item) {
+        items.push_back(item);
+    }
+
+    // Mostrar todos los items
+    void mostrarItems() const {
+        for (const auto& item : items) {
+            item->mostrarDatos();  // Mostrar detalles de cada item
+            cout << "-----------------------\n";
+        }
+    }
+
+    T* seleccionarItem() {
+        int id = 0;
+        int x = 0;
+        cout << "Seleccione un item: " << endl;
+        for (const auto& item : items) {
+            cout << "Identificacion: " << id << ", ";
+            item->mostrar();  // Mostrar detalles de cada item
+            cout << "-----------------------\n";
+            id++;
+        }
+        cout << "Escriba id del item deseado: " << endl;
+        cin >> x;
+        return items[x];
+    }
+};
+
+
+
+// Clase Conferencista
+class Conferencista {
+    string nombre;
+    string especialidad;
+    string biografia;
+    Gestor<Conferencia> *confparticipadas = new Gestor<Conferencia>;
+public:
+    Conferencista(string n, string e, string b) : nombre(n), especialidad(e), biografia(b) {}
+
+    void mostrarDatos() const {
+        cout << "Conferencista: " << nombre << endl;
+    }
+    string getNombre(){
+        return nombre;
+    }
+};
+
+
+class Conferencia {
+
+    string horario;
+    string titulo;
+    string descripcion;
+    Conferencista* conferencista;
+
+
+
+public:
+    Conferencia(string t, string d, string h, Conferencista* c)
+            : titulo(t), descripcion(d), horario(h), conferencista(c) {}
+
+    void mostrarDatos() const{
+        cout << "Conferencia: " << titulo << ", Descripcion: " << descripcion << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()<< endl;
+    }
+
+};
+
 
 class Evento {
 protected:
@@ -9,13 +89,17 @@ protected:
     string descripcion;
     string fecha;
     string lugar;
+    Gestor<Conferencia> *confdelEvento = new Gestor<Conferencia>;
 
 public:
     int maxAsistentes;
     Evento(string t, string d, string f, string l, int m)
             : titulo(t), descripcion(d), fecha(f), lugar(l), maxAsistentes(m) {}
 
-    virtual void mostrarEvento() const = 0;  // Método virtual puro
+    void mostrarDatos()
+    {
+        cout << "Conferencia: " << titulo << ", Descripcion: " << descripcion << ", Fecha: " << fecha << ", Lugar: " << lugar<< endl;
+    }
     virtual ~Evento() {}  // Destructor virtual
 
     // Sobrecarga de operadores para comparar eventos por fecha
@@ -35,139 +119,142 @@ public:
     }
 };
 
-// Clase derivada Conferencia
-class Conferencia : public Evento {
-    string horario;
-
-public:
-    Conferencia(string t, string d, string f, string l, int m, string h)
-            : Evento(t, d, f, l, m), horario(h) {}
-
-    void mostrarEvento() const override {
-        cout << "Conferencia: " << titulo << "\nDescripción: " << descripcion
-             << "\nFecha: " << fecha << "\nLugar: " << lugar
-             << "\nMáx. Asistentes: " << maxAsistentes << "\nHorario: " << horario << endl;
-    }
-};
-
-// Clase contenedora para Conferencias
-class GestorConferencias {
-    vector<Conferencia> conferencias;
-
-public:
-    // Agregar una conferencia a la lista
-    void agregarConferencia(Conferencia conf) {
-        conferencias.push_back(conf);
-    }
-
-    // Mostrar todas las conferencias
-    void mostrarConferencias() const {
-        for (const auto& conf : conferencias) {
-            conf.mostrarEvento();  // Mostrar detalles de cada conferencia
-            cout << "-----------------------\n";
-        }
-    }
-};
-
 // Clase Asistente
 class Asistente {
     string nombre;
     string email;
+    Gestor<Inscripcion> *eventosInscriptos = new Gestor<Inscripcion>;
 
 public:
     Asistente(string n, string e) : nombre(n), email(e) {}
 
-    void mostrarAsistente() const {
+    void mostrarDatos() const {
         cout << "Asistente: " << nombre << " - Email: " << email << endl;
     }
+
 };
+
+
 
 // Clase Inscripcion
 class Inscripcion {
-    Conferencia* conferencia;
-    Asistente* asistente;
+    Evento* evento;
+    Gestor<Asistente>* asistInscriptos = new Gestor<Asistente>;
 
 public:
-    Inscripcion(Conferencia* conf, Asistente* asis)
-            : conferencia(conf), asistente(asis) {}
+    Inscripcion(Evento* even)
+            : evento(even){}
 
     void mostrarInscripcion() const {
         cout << "Inscripción:" << endl;
-        conferencia->mostrarEvento();
-        asistente->mostrarAsistente();
+        evento->mostrarDatos();
+        asistInscriptos->mostrarItems();
         cout << "-----------------------\n";
     }
 
     // Sobrecarga de operadores para comparar inscripciones por número de asistentes permitidos
     bool operator<(const Inscripcion& otro) const {
-        return conferencia->maxAsistentes < otro.conferencia->maxAsistentes;
+        return evento->maxAsistentes < otro.evento->maxAsistentes;
     }
 
     bool operator>(const Inscripcion& otro) const {
-        return conferencia->maxAsistentes > otro.conferencia->maxAsistentes;
+        return evento->maxAsistentes > otro.evento->maxAsistentes;
     }
 };
 
 // Clase contenedora para Inscripciones
-class GestorInscripciones {
-    vector<Inscripcion> inscripciones;
+class GestorInscripciones : Gestor<Inscripcion> {
 
 public:
-    // Agregar una inscripción
-    void agregarInscripcion(Inscripcion inscripcion) {
-        inscripciones.push_back(inscripcion);
-    }
-
-    // Mostrar todas las inscripciones
-    void mostrarInscripciones() const {
-        for (const auto& inscripcion : inscripciones) {
-            inscripcion.mostrarInscripcion();  // Mostrar detalles de cada inscripción
-        }
-    }
-
     // Sobrecarga de operadores para comparar el número total de inscripciones
     bool operator<(const GestorInscripciones& otro) const {
-        return inscripciones.size() < otro.inscripciones.size();
+        return items.size() < otro.items.size();
     }
 
     bool operator>(const GestorInscripciones& otro) const {
-        return inscripciones.size() > otro.inscripciones.size();
+        return items.size() > otro.items.size();
     }
+};
+class Menu {
+private:
+    GestorInscripciones* todasInscripciones;
+    Gestor<Evento>* todosEventos;
+    Gestor<Conferencia>* todasConferencias;
+    char eleccion;
+public:
+    Menu(GestorInscripciones* i, Gestor<Evento>* e, Gestor<Conferencia>* g) : todasInscripciones(i), todosEventos(e), todasConferencias(g) {}
+    void PantallaPrincipal(){
+        do {
+            cout << "Creacion de [E]vento, [R]egistro de Conferencias, [C]onsulta de Conferencias, Registro de [I]nscripciones, [T]erminar programa" << endl;
+            cin >> eleccion;
+            switch (eleccion) {
+                case 'E':
+                    PantallaEventos();
+                    break;
+                case 'R':
+                    PantallaRegistro();
+                    break;
+                case 'C':
+                    PantallaConsulta();
+                    break;
+                case 'I':
+                    PantallaInscripciones();
+                    break;
+                case 'T':
+                    return;
+                default:
+                    cout << "Tecla no reconocida" << endl;
+
+            }
+        }while(true);
+    };
+    void PantallaEventos(){
+
+        string titulo;
+        string descripcion;
+        string fecha;
+        string lugar;
+        int maxAsistentes;
+
+        cout << "Titulo del evento: ";
+        cin >> titulo;
+        cout << "Descripcion del evento: ";
+        cin >> descripcion;
+        cout << "Fecha del evento: ";
+        cin >> fecha;
+        cout << "Lugar del evento: ";
+        cin >> lugar;
+        cout << "Asistencia maxima del evento: ";
+        cin >> maxAsistentes;
+        todosEventos->agregarItem(new Evento(titulo, descripcion, fecha, lugar, maxAsistentes));
+    };
+    void PantallaRegistro(){
+        string horario;
+        string titulo;
+        string descripcion;
+        Conferencista* conferencista;
+        cout << "Titulo de la conferencia: ";
+        cin >> titulo;
+        cout << "Descripcion de la conferencia: ";
+        cin >> descripcion;
+        cout << "Horario de la conferencia: ";
+        cin >> horario;
+        cout << "Conferencista de la conferencia: ";
+        todasConferencias->agregarItem(new Conferencia(titulo, descripcion, horario, conferencista*));
+
+    };
+    void PantallaConsulta(){
+        todasConferencias->mostrarItems();
+
+    };
+    void PantallaInscripciones(){
+        Evento* evento;
+
+    };
+
 };
 
 int main() {
-    // Crear conferencia (derivada de Evento)
-    Conferencia conf1("AI Conference", "Conferencia sobre IA", "10/10/2024", "Auditorio A", 100, "10:00 AM");
-    Conferencia conf2("Robotics Conference", "Conferencia sobre robótica", "11/10/2024", "Auditorio B", 150, "11:00 AM");
-
-    // Crear gestor de conferencias
-    GestorConferencias gestorConferencias;
-    gestorConferencias.agregarConferencia(conf1);
-    gestorConferencias.agregarConferencia(conf2);
-
-    // Mostrar todas las conferencias
-    gestorConferencias.mostrarConferencias();
-
-    // Crear asistente e inscripción
-    Asistente asistente1("Jane Smith", "jane@example.com");
-    Asistente asistente2("Carlos Ruiz", "carlos@example.com");
-
-    // Crear gestor de inscripciones
-    GestorInscripciones gestorInscripciones;
-
-    // Registrar inscripciones
-    Inscripcion inscripcion1(&conf1, &asistente1);
-    Inscripcion inscripcion2(&conf2, &asistente2);
-    gestorInscripciones.agregarInscripcion(inscripcion1);
-    gestorInscripciones.agregarInscripcion(inscripcion2);
-
-    // Mostrar todas las inscripciones
-    gestorInscripciones.mostrarInscripciones();
-
-    // Comparaciones con sobrecarga de operadores
-    cout << "Comparando conferencias por fecha: " << (conf1 < conf2 ? "Conf1 es antes" : "Conf2 es antes") << endl;
-    cout << "Comparando inscripciones por asistentes: " << (inscripcion1 < inscripcion2 ? "Conf1 tiene menos asistentes" : "Conf2 tiene menos asistentes") << endl;
-    cout << "Comparando gestores por número de inscripciones: " << (gestorInscripciones > gestorInscripciones ? "Gestor 1 tiene más inscripciones" : "Gestor 2 tiene más inscripciones") << endl;
 
     return 0;
 }
