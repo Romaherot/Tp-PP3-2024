@@ -7,6 +7,8 @@ class Conferencia;
 class Conferencista;
 class Inscripcion;
 class Asistente;
+class ConferenciaMagistral;
+class Taller;
 template <typename T>
 
 class Gestor {
@@ -21,6 +23,9 @@ public:
 
     // Mostrar todos los items
     void mostrarItems() const {
+        if( items.size()==0){
+            cout<< "No hay datos para mostrar."<<endl;
+        }else
         for (const auto& item : items) {
             item->mostrarDatos();  // Mostrar detalles de cada item
             cout << "-----------------------\n";
@@ -28,6 +33,9 @@ public:
     }
 
     T* seleccionarItem() {
+        if( items.size()==0){
+            cout<< "No hay datos para mostrar."<<endl;
+        }else{
         int id = 0;
         int x = 0;
         for (const auto& item : items) {
@@ -38,7 +46,29 @@ public:
         }
         cout << "Escriba id del deseado: " << endl;
         cin >> x;
-        return items[x];
+        return items[x];}
+    }
+    void eliminarItem() {
+        int id = 0;
+        int x = 0;
+        for (const auto& item : items) {
+            cout << "Identificacion: " << id << ", ";
+            item->mostrarDatos();  // Mostrar detalles de cada item
+            cout << "-----------------------\n";
+            id++;
+        }
+        cout << "Escriba id del item que se desea eliminar: " << endl;
+        cin >> x;
+        items.erase(items.begin()+x);
+    }
+    void removerItem(T* t){
+        int x = 0;
+        for (const auto& item : items) {
+            if(item == t)
+                items.erase(items.begin()+x);
+            x++;
+        }
+
     }
     int tamanioDeLista(){
         return items.size();
@@ -62,11 +92,14 @@ public:
     string getNombre(){
         return nombre;
     }
+    void agregarConferencia(Conferencia* c){
+        confparticipadas->agregarItem(c);
+    }
 };
 
 
 class Conferencia {
-private:
+protected:
     string horario;
     string titulo;
     string descripcion;
@@ -74,7 +107,9 @@ private:
 
 public:
     Conferencia(string t, string d, string h, Conferencista* c)
-            : titulo(t), descripcion(d), horario(h), conferencista(c) {}
+            : titulo(t), descripcion(d), horario(h), conferencista(c) {
+        conferencista->agregarConferencia(this);
+    }
 
     void mostrarDatos() const{
         cout << "Conferencia: " << titulo << ", Descripcion: " << descripcion << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()<< endl;
@@ -136,7 +171,12 @@ public:
     void mostrarDatos() const {
         cout << "Asistente: " << nombre << " - Email: " << email << endl;
     }
-
+    void agregarEvento(Evento* e){
+        eventosInscriptos->agregarItem(e);
+    }
+    void eliminarEvento(Evento* e){
+        eventosInscriptos->removerItem(e);
+    }
 };
 
 
@@ -154,16 +194,18 @@ public:
         cout << "Inscripción:" << endl;
         evento->mostrarDatos();
         asistInscriptos->mostrarItems();
-        cout << "-----------------------\n";
     }
     void agregarAsistentes(Asistente* a){
         if(evento->maxAsistentes>asistInscriptos->tamanioDeLista()) {
             asistInscriptos->agregarItem(a);
-            a->eventosInscriptos->agregarItem(evento);
+            a->agregarEvento(evento);
             cout << "Asistente añadido con exito" << endl;
         }
         else
             cout << "Asistente no añadido: Evento lleno" << endl;
+    }
+    void eliminarAsistentes(){
+       asistInscriptos->eliminarItem();
     }
 
     // Sobrecarga de operadores para comparar inscripciones por número de asistentes permitidos
@@ -189,6 +231,20 @@ public:
         return items.size() > otro.items.size();
     }
 };
+class ConferenciaMagistral: public Conferencia{
+private:
+    string tema;
+public:
+    ConferenciaMagistral();
+    void mostrarDatos();
+};
+class Taller: public Conferencia{
+private:
+    string material;
+public:
+    Taller();
+    void mostrarDatos();
+};
 class Menu {
 private:
     GestorInscripciones* todasInscripciones;
@@ -198,17 +254,17 @@ private:
     Gestor<Asistente>* todosAsistentes;
     char eleccion;
 public:
-    Menu(GestorInscripciones* i, Gestor<Evento>* e, Gestor<Conferencia>* g) : todasInscripciones(i), todosEventos(e), todasConferencias(g) {}
-    void PantallaPrincipal(){
+    Menu(GestorInscripciones* i, Gestor<Evento>* e, Gestor<Conferencia>* g, Gestor<Conferencista>* c, Gestor<Asistente>* a) : todasInscripciones(i), todosEventos(e), todasConferencias(g), todosConferencistas(c), todosAsistentes(a){}
+    char PantallaPrincipal(){
         do {
-            cout << "Creacion de [E]vento, [R]egistro de Conferencias, [C]onsulta de Conferencias, Registro de [I]nscripciones, [T]erminar programa" << endl;
+            cout << "Creacion de [E]vento, [R]egistro de Conferencias, Registro de [A]sistentes, [C]onsulta de Conferencias, Registro de [I]nscripciones, [T]erminar programa" << endl;
             cin >> eleccion;
             switch (eleccion) {
                 case 'E':
                     PantallaEventos();
                     break;
                 case 'R':
-                    PantallaRegistro();
+                    PantallaRegistroConferencias();
                     break;
                 case 'C':
                     PantallaConsulta();
@@ -216,13 +272,17 @@ public:
                 case 'I':
                     PantallaInscripciones();
                     break;
+                case 'A':
+                    PantallaRegistroAsistentes();
+                    break;
                 case 'T':
-                    return;
+                    return 'T';
                 default:
                     cout << "Tecla no reconocida" << endl;
 
             }
         }while(eleccion!='T');
+        return 'T';
     };
     void PantallaEventos(){
         string titulo;
@@ -241,9 +301,19 @@ public:
         cin >> lugar;
         cout << "Asistencia maxima del evento: ";
         cin >> maxAsistentes;
-        todosEventos->agregarItem(new Evento(titulo, descripcion, fecha, lugar, maxAsistentes));
+        Evento* evento = new Evento(titulo, descripcion, fecha, lugar, maxAsistentes);
+        todosEventos->agregarItem(evento);
+        todasInscripciones->agregarItem(new Inscripcion(evento));
     };
-    void PantallaRegistro(){
+    void PantallaRegistroConferencias(){
+        if(todosEventos->tamanioDeLista()==0){
+            cout<<"No hay eventos disponibles a los que se le puedan agregar conferencias"<<endl;
+            return;
+        }
+        if(todosConferencistas->tamanioDeLista()==0){
+            cout<<"No hay conferencistas disponibles"<<endl;
+            return;
+        }
         Evento* evento;
         string horario;
         string titulo;
@@ -265,24 +335,48 @@ public:
         evento->agregarConferencia(conferencia);
 
     };
+    void PantallaRegistroAsistentes(){
+        string nombre;
+        string email;
+        Asistente* asistente;
+        cout << "Nombre del asistente: ";
+        cin >> nombre;
+        cout << "Email del asistente: ";
+        cin >> email;
+        asistente = new Asistente(nombre, email);
+        todosAsistentes->agregarItem(asistente);
+
+    };
     void PantallaConsulta(){
         todasConferencias->mostrarItems();
 
     };
     void PantallaInscripciones(){
+        if(todasInscripciones->tamanioDeLista()==0){
+            cout<<"No hay inscripciones en este momento."<<endl;
+            return;
+        }
         Asistente* a;
-        cout<< "[M]ostrar inscripciones, [A]gregar inscripciones, [B]orrar inscripciones" << endl;
-        cin>>eleccion
+        Inscripcion* i;
+        cout<< "[M]ostrar inscripciones, Inscribir [A]sistente, [D]esinscribir asistente" << endl;
+        cin>>eleccion;
         switch (eleccion) {
             case 'M':
                 todasInscripciones->mostrarItems();
                 break;
             case 'A':
+                cout << "Seleccione el evento al que se le desea agregar asistentes: "<< endl;
+                i = todasInscripciones->seleccionarItem();
                 cout << "Seleccione el asistente a agregar: "<< endl;
                 a = todosAsistentes->seleccionarItem();
+                i->agregarAsistentes(a);
                 break;
-            case 'B':
+            case 'D':
+                cout << "Seleccione el evento al que se le desea eliminar asistentes: "<< endl;
+                todasInscripciones->seleccionarItem()->eliminarAsistentes();
                 break;
+            default:
+                return;
 
         }
 
@@ -292,6 +386,16 @@ public:
 };
 
 int main() {
+    auto mainInscripciones = new  GestorInscripciones;
+    auto mainEventos = new Gestor<Evento>;
+    auto mainConferencia = new Gestor<Conferencia>;
+    auto mainConferencista = new Gestor<Conferencista>;
+    auto mainAsistentes = new Gestor<Asistente>;
+    char sentinela = 0;
 
+    auto mainMenu = new Menu(mainInscripciones, mainEventos, mainConferencia, mainConferencista, mainAsistentes);
+    do{
+       sentinela = mainMenu->PantallaPrincipal();
+    }while(sentinela != 'T');
     return 0;
 }
