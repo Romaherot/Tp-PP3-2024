@@ -2,104 +2,116 @@
 #include <vector>
 #include <string>
 using namespace std;
-class Evento;
-class Conferencia;
-class Conferencista;
-class Inscripcion;
-class Asistente;
-class GestorInscripciones;
-class ConferenciaMagistral;
-class Taller;
-template <typename T>
 
+// Clase base para Gestor genérico
+template <typename T>
 class Gestor {
 protected:
     vector<T*> items;
 
 public:
-    // Agregar un item a la lista
     void agregarItem(T* item) {
         items.push_back(item);
     }
 
-    // Mostrar todos los items
     void mostrarItems() const {
-        if(items.size()==0){
-            cout<< "No hay datos para mostrar."<<endl;
-        }else
-        for (const auto& item : items) {
-            item->mostrarDatos();  // Mostrar detalles de cada item
-            cout << "-----------------------\n";
+        if(items.empty()){
+            cout << "No hay datos para mostrar." << endl;
+        } else {
+            for (const auto& item : items) {
+                item->mostrarDatos();
+                cout << "-----------------------\n";
+            }
         }
     }
 
     T* seleccionarItem() {
-        if( items.size()==0){
-            cout<< "No hay datos para mostrar."<<endl;
-        }else{
-        int id = 0;
-        int x = 0;
-        for (const auto& item : items) {
-            cout << "Identificacion: " << id << ", ";
-            item->mostrarDatos();  // Mostrar detalles de cada item
-            cout << "-----------------------\n";
-            id++;
+        if(items.empty()){
+            cout << "No hay datos para mostrar." << endl;
+            return nullptr;
+        } else {
+            int id = 0;
+            int x = 0;
+            for (const auto& item : items) {
+                cout << "Identificacion: " << id << ", ";
+                item->mostrarDatos();
+                cout << "-----------------------\n";
+                id++;
+            }
+            cout << "Escriba id del deseado: " << endl;
+            cin >> x;
+            if(x >= 0 && x < items.size()) {
+                return items[x];
+            } else {
+                cout << "ID inválido." << endl;
+                return nullptr;
+            }
         }
-        cout << "Escriba id del deseado: " << endl;
-        cin >> x;
-        return items[x];}
     }
+
     void eliminarItem() {
+        if(items.empty()){
+            cout << "No hay elementos para eliminar." << endl;
+            return;
+        }
         int id = 0;
         int x = 0;
         for (const auto& item : items) {
             cout << "Identificacion: " << id << ", ";
-            item->mostrarDatos();  // Mostrar detalles de cada item
+            item->mostrarDatos();
             cout << "-----------------------\n";
             id++;
         }
         cout << "Escriba id del item que se desea eliminar: " << endl;
         cin >> x;
-        items.erase(items.begin()+x);
-    }
-    void removerItem(T* t){
-        int x = 0;
-        for (const auto& item : items) {
-            if(item == t)
-                items.erase(items.begin()+x);
-            x++;
+        if(x >= 0 && x < items.size()) {
+            delete items[x];
+            items.erase(items.begin() + x);
+            cout << "Elemento eliminado con éxito." << endl;
+        } else {
+            cout << "ID inválido." << endl;
         }
-
     }
+
+    void removerItem(T* t){
+        for (auto it = items.begin(); it != items.end(); ++it) {
+            if(*it == t) {
+                delete *it;
+                items.erase(it);
+                return;
+            }
+        }
+    }
+
     int tamanioDeLista(){
         return items.size();
     }
-    void removerLista(){
-        int x = 0;
-        for (const auto& item : items) {
-            items.erase(items.begin()+x);
-            delete item;
-            x++;
-        }
 
+    void removerLista(){
+        for (auto& item : items) {
+            delete item;
+        }
+        items.clear();
+    }
+
+    ~Gestor() {
+        removerLista();
     }
 };
-
-
 
 // Clase Conferencista
 class Conferencista {
     string nombre;
     string especialidad;
     string biografia;
-    Gestor<Conferencia> *confparticipadas = new Gestor<Conferencia>;
+    Gestor<class Conferencia> *confparticipadas = new Gestor<class Conferencia>;
 public:
     Conferencista(string n, string e, string b) : nombre(n), especialidad(e), biografia(b) {}
 
     void mostrarDatos() const {
-        cout << "Conferencista: " << nombre << endl;
+        cout << "Conferencista: " << nombre << ", Especialidad: " << especialidad << endl;
     }
-    string getNombre(){
+    string getNombre() const {
         return nombre;
     }
     void agregarConferencia(Conferencia* c){
@@ -108,9 +120,73 @@ public:
     void eliminarConferencia(Conferencia* c){
         confparticipadas->removerItem(c);
     }
+    // Overloaded operators for comparing speakers by number of conferences
+    bool operator<(const Conferencista& otro) const {
+        return confparticipadas->tamanioDeLista() < otro.confparticipadas->tamanioDeLista();
+    }
+
+    bool operator>(const Conferencista& otro) const {
+        return confparticipadas->tamanioDeLista() > otro.confparticipadas->tamanioDeLista();
+    }
+
+    bool operator==(const Conferencista& otro) const {
+        return confparticipadas->tamanioDeLista() == otro.confparticipadas->tamanioDeLista();
+    }
+
+    int getNumConferencias() const {
+        return confparticipadas->tamanioDeLista();
+    }
+
+    ~Conferencista() {
+        delete confparticipadas;
+    }
 };
 
+// Clase Evento
+class Evento {
+private:
+    string titulo;
+    string descripcion;
+    string fecha;
+    string lugar;
+    int maxAsistentes;
+    Gestor<Conferencia>* confDelEvento = new Gestor<Conferencia>;
 
+public:
+    Evento(string t, string d, string f, string l, int m)
+            : titulo(t), descripcion(d), fecha(f), lugar(l), maxAsistentes(m) {}
+
+    virtual void mostrarDatos() const {
+        cout << "Evento: " << titulo << ", Descripción: " << descripcion
+             << ", Fecha: " << fecha << ", Lugar: " << lugar
+             << ", Máximo de asistentes: " << maxAsistentes << endl;
+    }
+    void agregarConferencia(Conferencia* c){
+        confDelEvento->agregarItem(c);
+    }
+    void eliminarConferencia(Conferencia* c){
+        confDelEvento->removerItem(c);
+    }
+    // Overloaded operators for comparing events by date
+    bool operator<(const Evento& otro) const {
+        return fecha < otro.fecha;
+    }
+
+    bool operator>(const Evento& otro) const {
+        return fecha > otro.fecha;
+    }
+
+    bool operator==(const Evento& otro) const {
+        return fecha == otro.fecha;
+    }
+
+    string getFecha() const {
+        return fecha;
+    }
+    virtual ~Evento() {}
+};
+
+// Clase Conferencia
 class Conferencia {
 protected:
     string horario;
@@ -124,71 +200,43 @@ public:
         conferencista->agregarConferencia(this);
     }
 
-    void mostrarDatos() const{
-        cout << "Conferencia: " << titulo << ", Descripcion: " << descripcion << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()<< endl;
+    virtual void mostrarDatos() const {
+        cout << "Conferencia: " << titulo << ", Descripción: " << descripcion
+             << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre() << endl;
     }
-    ~Conferencia(){
+
+    virtual ~Conferencia() {
         conferencista->eliminarConferencia(this);
     }
-
 };
 
-
-class Evento {
+// Clase ConferenciaMagistral
+class ConferenciaMagistral : public Conferencia {
 private:
-    string titulo;
-    string descripcion;
-    string fecha;
-    string lugar;
-    int maxAsistentes;
-    Gestor<Conferencia> *confdelEvento = new Gestor<Conferencia>;
-    friend Inscripcion;
-
+    string tema;
 public:
+    ConferenciaMagistral(string t, string d, string h, Conferencista* c, string tm)
+            : Conferencia(t, d, h, c), tema(tm) {}
 
-    Evento(string t, string d, string f, string l, int m)
-            : titulo(t), descripcion(d), fecha(f), lugar(l), maxAsistentes(m) {}
-
-    void mostrarDatos()
-    {
-        cout << "Evento: " << titulo << ", Descripcion: " << descripcion << ", Fecha: " << fecha << ", Lugar: " << lugar<< endl;
-    }
-    void agregarConferencia(Conferencia* c){
-        confdelEvento->agregarItem(c);
-    }
-
-
-    // Sobrecarga de operadores para comparar eventos por fecha
-    bool operator<(const Evento& otro) const {
-        return fecha < otro.fecha;
-    }
-    bool operator>(const Evento& otro) const {
-        return fecha > otro.fecha;
-    }
-
-    // Sobrecarga de operadores para comparar eventos por número máximo de asistentes
-    bool operator<=(const Evento& otro) const {
-        return maxAsistentes <= otro.maxAsistentes;
-    }
-    bool operator>=(const Evento& otro) const {
-        return maxAsistentes >= otro.maxAsistentes;
-    }
-    ~Evento(){
-        confdelEvento->removerLista();
+    void mostrarDatos() const override {
+        cout << "Conferencia Magistral: " << titulo << ", Descripción: " << descripcion
+             << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()
+             << ", Tema: " << tema << endl;
     }
 };
 
-// Clase contenedora para Inscripciones
-class GestorInscripciones : public Gestor<Inscripcion> {
-
+// Clase Taller
+class Taller : public Conferencia {
+private:
+    string material;
 public:
-    // Sobrecarga de operadores para comparar el número total de inscripciones
-    bool operator<(const GestorInscripciones& otro) const {
-        return items.size() < otro.items.size();
-    }
+    Taller(string t, string d, string h, Conferencista* c, string m)
+            : Conferencia(t, d, h, c), material(m) {}
 
-    bool operator>(const GestorInscripciones& otro) const {
-        return items.size() > otro.items.size();
+    void mostrarDatos() const override {
+        cout << "Taller: " << titulo << ", Descripción: " << descripcion
+             << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()
+             << ", Material: " << material << endl;
     }
 };
 
@@ -196,13 +244,14 @@ public:
 class Asistente {
     string nombre;
     string email;
-    GestorInscripciones *eventosInscriptos = new GestorInscripciones;
-    friend Inscripcion;
+    string telefono;
+    Gestor<class Inscripcion> *eventosInscriptos = new Gestor<class Inscripcion>;
+    friend class Inscripcion;
 public:
-    Asistente(string n, string e) : nombre(n), email(e) {}
+    Asistente(string n, string e, string t) : nombre(n), email(e), telefono(t) {}
 
     void mostrarDatos() const {
-        cout << "Asistente: " << nombre << " - Email: " << email << endl;
+        cout << "Asistente: " << nombre << " - Email: " << email << " - Teléfono: " << telefono << endl;
     }
     void agregarInscripcion(Inscripcion* e){
         eventosInscriptos->agregarItem(e);
@@ -210,11 +259,30 @@ public:
     void eliminarInscripcion(Inscripcion* e){
         eventosInscriptos->removerItem(e);
     }
+    // Overloaded operators for comparing attendees by number of registered events
+    bool operator<(const Asistente& otro) const {
+        return eventosInscriptos->tamanioDeLista() < otro.eventosInscriptos->tamanioDeLista();
+    }
+
+    bool operator>(const Asistente& otro) const {
+        return eventosInscriptos->tamanioDeLista() > otro.eventosInscriptos->tamanioDeLista();
+    }
+
+    bool operator==(const Asistente& otro) const {
+        return eventosInscriptos->tamanioDeLista() == otro.eventosInscriptos->tamanioDeLista();
+    }
+
+    int getNumInscripciones() const {
+        return eventosInscriptos->tamanioDeLista();
+    }
+
+    string getNombre() const {
+        return nombre;
+    }
     ~Asistente(){
+        delete eventosInscriptos;
     }
 };
-
-
 
 // Clase Inscripcion
 class Inscripcion {
@@ -222,8 +290,7 @@ class Inscripcion {
     Gestor<Asistente>* asistInscriptos = new Gestor<Asistente>;
 
 public:
-    Inscripcion(Evento* even)
-            : evento(even){}
+    Inscripcion(Evento* even) : evento(even) {}
 
     void mostrarDatos() const {
         cout << "Inscripción:" << endl;
@@ -232,64 +299,34 @@ public:
         asistInscriptos->mostrarItems();
     }
     void agregarAsistentes(Asistente* a){
-        if(evento->maxAsistentes>asistInscriptos->tamanioDeLista()) {
-            asistInscriptos->agregarItem(a);
-            a->agregarInscripcion(this);
-            cout << "Asistente añadido con exito" << endl;
-        }
-        else
-            cout << "Asistente no añadido: Evento lleno" << endl;
+        asistInscriptos->agregarItem(a);
+        a->agregarInscripcion(this);
+        cout << "Asistente añadido con éxito" << endl;
     }
     void eliminarAsistentes(){
-       asistInscriptos->eliminarItem();
+        asistInscriptos->eliminarItem();
     }
 
-    // Sobrecarga de operadores para comparar inscripciones por número de asistentes permitidos
-    bool operator<(const Inscripcion& otro) const {
-        return evento->maxAsistentes < otro.evento->maxAsistentes;
-    }
-
-    bool operator>(const Inscripcion& otro) const {
-        return evento->maxAsistentes > otro.evento->maxAsistentes;
+    ~Inscripcion() {
+        delete asistInscriptos;
     }
 };
 
-
-class ConferenciaMagistral: public Conferencia{
-private:
-    string tema;
-public:
-    ConferenciaMagistral(string t, string d, string h, Conferencista* c, string m)
-            : Conferencia(t, d, h, c),tema(m){}
-            void mostrarDatos() {
-                cout << "Conferencia: " << titulo << ", Descripcion: " << descripcion << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()<< ", Tema: " << tema << endl;
-    }
-
-};
-class Taller: public Conferencia{
-private:
-    string material;
-public:
-    Taller(string t, string d, string h, Conferencista* c, string m)
-            : Conferencia(t, d, h, c),material(m){}
-    void mostrarDatos() {
-        cout << "Conferencia: " << titulo << ", Descripcion: " << descripcion << ", Horario: " << horario << ", Conferencista: " << conferencista->getNombre()<< ", Material: " << material << endl;
-    }
-
-};
 class Menu {
 private:
-    GestorInscripciones* todasInscripciones;
+    Gestor<Inscripcion>* todasInscripciones;
     Gestor<Evento>* todosEventos;
     Gestor<Conferencia>* todasConferencias;
     Gestor<Conferencista>* todosConferencistas;
     Gestor<Asistente>* todosAsistentes;
     char eleccion;
 public:
-    Menu(GestorInscripciones* i, Gestor<Evento>* e, Gestor<Conferencia>* g, Gestor<Conferencista>* c, Gestor<Asistente>* a) : todasInscripciones(i), todosEventos(e), todasConferencias(g), todosConferencistas(c), todosAsistentes(a){}
+    Menu(Gestor<Inscripcion>* i, Gestor<Evento>* e, Gestor<Conferencia>* g, Gestor<Conferencista>* c, Gestor<Asistente>* a)
+            : todasInscripciones(i), todosEventos(e), todasConferencias(g), todosConferencistas(c), todosAsistentes(a) {}
+
     char PantallaPrincipal(){
         do {
-            cout << "Creacion de [E]vento, [R]egistro de Conferencias, Registro de [A]sistentes, [C]onsulta de Conferencias, Registro de [I]nscripciones, [T]erminar programa" << endl;
+            cout << "Creacion de [E]vento, [R]egistro de Conferencias, Registro de [A]sistentes, [C]onsulta de Conferencias, Registro de [I]nscripciones, Crear Conferenci[S]ta, [O]peraciones de comparación,  [T]erminar programa" << endl;
             cin >> eleccion;
             switch (eleccion) {
                 case 'E':
@@ -307,171 +344,281 @@ public:
                 case 'A':
                     PantallaRegistroAsistentes();
                     break;
+                case 'S':
+                    PantallaCrearConferencista();
+                    break;
+                case 'O':
+                    PantallaOperacionesComparacion();
+                    break;
                 case 'T':
                     return 'T';
                 default:
                     cout << "Tecla no reconocida" << endl;
-
             }
-        }while(eleccion!='T');
+        } while(eleccion != 'T');
         return 'T';
-    };
+    }
+
     void PantallaEventos(){
-        string titulo;
-        string descripcion;
-        string fecha;
-        string lugar;
+        string titulo, descripcion, fecha, lugar;
         int maxAsistentes;
 
         cout << "Titulo del evento: ";
-        cin >> titulo;
+        cin.ignore();
+        getline(cin, titulo);
         cout << "Descripcion del evento: ";
-        cin >> descripcion;
+        getline(cin, descripcion);
         cout << "Fecha del evento: ";
-        cin >> fecha;
+        getline(cin, fecha);
         cout << "Lugar del evento: ";
-        cin >> lugar;
+        getline(cin, lugar);
         cout << "Asistencia maxima del evento: ";
         cin >> maxAsistentes;
+
         Evento* evento = new Evento(titulo, descripcion, fecha, lugar, maxAsistentes);
         todosEventos->agregarItem(evento);
         todasInscripciones->agregarItem(new Inscripcion(evento));
-    };
+        cout << "Evento creado con éxito." << endl;
+    }
+
     void PantallaRegistroConferencias(){
-        if(todosEventos->tamanioDeLista()==0){
-            cout<<"No hay eventos disponibles a los que se le puedan agregar conferencias"<<endl;
+        if(todosEventos->tamanioDeLista() == 0){
+            cout << "No hay eventos disponibles. Por favor, cree un evento primero." << endl;
             return;
         }
-        if(todosConferencistas->tamanioDeLista()==0){
-            cout<<"No hay conferencistas disponibles"<<endl;
+        if(todosConferencistas->tamanioDeLista() == 0){
+            cout << "No hay conferencistas disponibles. Por favor, cree un conferencista primero." << endl;
             return;
         }
-        Evento* evento;
-        string horario;
-        string titulo;
-        string descripcion;
+        string horario, titulo, descripcion;
         Conferencista* conferencista;
         string material;
         string tema;
-        cout << "Seleccione a que evento pertenecera la conferencia: ";
-        evento= todosEventos->seleccionarItem();
+        Evento* evento;
+        cout << "Seleccione el evento al que pertenece la conferencia: " << endl;
+        evento = todosEventos->seleccionarItem();
+        if (evento == nullptr) return;
+
         cout << "Titulo de la conferencia: ";
-        cin >> titulo;
+        cin.ignore();
+        getline(cin, titulo);
         cout << "Descripcion de la conferencia: ";
-        cin >> descripcion;
+        getline(cin, descripcion);
         cout << "Horario de la conferencia: ";
-        cin >> horario;
+        getline(cin, horario);
         cout << "Seleccione el conferencista de la conferencia: " << endl;
-        conferencista= todosConferencistas->seleccionarItem();
-        cout<< "Es una conferencia [M]agistral o un Ta[L]ler?" << endl;
-        cin>>eleccion;
+        conferencista = todosConferencistas->seleccionarItem();
+        if (conferencista == nullptr) return;
+
+        cout << "Es una conferencia [M]agistral, un Ta[L]ler o una conferencia [N]ormal?" << endl;
+        cin >> eleccion;
+
+        Conferencia* conferencia;
         switch (eleccion) {
             case 'M':
                 cout << "Tema de la conferencia magistral: ";
-                cin >> tema;
-                ConferenciaMagistral* conferenciaMagistral;
-                conferenciaMagistral = new ConferenciaMagistral(titulo, descripcion, horario, conferencista, tema);
-                todasConferencias->agregarItem(conferenciaMagistral);
-                evento->agregarConferencia(conferenciaMagistral);
+                cin.ignore();
+                getline(cin, tema);
+                conferencia = new ConferenciaMagistral(titulo, descripcion, horario, conferencista, tema);
                 break;
             case 'L':
                 cout << "Material del taller: ";
-                cin >> material;
-                Taller* taller;
-                taller = new Taller(titulo, descripcion, horario, conferencista, material);
-                todasConferencias->agregarItem(taller);
-                evento->agregarConferencia(taller);
+                cin.ignore();
+                getline(cin, material);
+                conferencia = new Taller(titulo, descripcion, horario, conferencista, material);
                 break;
-            case 'N':
-                Conferencia* conferencia;
+            default:
                 conferencia = new Conferencia(titulo, descripcion, horario, conferencista);
-                todasConferencias->agregarItem(conferencia);
-                evento->agregarConferencia(conferencia);
-                break;}
+                break;
+        }
 
-    };
+        todasConferencias->agregarItem(conferencia);
+        evento->agregarConferencia(conferencia);
+        cout << "Conferencia registrada con éxito." << endl;
+    }
+
     void PantallaRegistroAsistentes(){
-        string nombre;
-        string email;
-        Asistente* asistente;
+        string nombre, email, telefono;
         cout << "Nombre del asistente: ";
-        cin >> nombre;
+        cin.ignore();
+        getline(cin, nombre);
         cout << "Email del asistente: ";
-        cin >> email;
-        asistente = new Asistente(nombre, email);
+        getline(cin, email);
+        cout << "Teléfono del asistente: ";
+        getline(cin, telefono);
+        Asistente* asistente = new Asistente(nombre, email, telefono);
         todosAsistentes->agregarItem(asistente);
+        cout << "Asistente registrado con éxito." << endl;
+    }
 
-    };
     void PantallaConsulta(){
         todasConferencias->mostrarItems();
+    }
 
-    };
     void PantallaInscripciones(){
-        if(todasInscripciones->tamanioDeLista()==0){
-            cout<<"No hay inscripciones en este momento."<<endl;
+        if(todasInscripciones->tamanioDeLista() == 0){
+            cout << "No hay inscripciones en este momento." << endl;
             return;
         }
         Asistente* a;
         Inscripcion* i;
-        cout<< "[M]ostrar inscripciones, Inscribir [A]sistente, [D]esinscribir asistente" << endl;
-        cin>>eleccion;
+        cout << "[M]ostrar inscripciones, Inscribir [A]sistente, [D]esinscribir asistente" << endl;
+        cin >> eleccion;
         switch (eleccion) {
             case 'M':
                 todasInscripciones->mostrarItems();
                 break;
             case 'A':
-                cout << "Seleccione el evento al que se le desea agregar asistentes: "<< endl;
+                cout << "Seleccione el evento al que se le desea agregar asistentes: " << endl;
                 i = todasInscripciones->seleccionarItem();
-                cout << "Seleccione el asistente a agregar: "<< endl;
+                if (i == nullptr) return;
+                cout << "Seleccione el asistente a agregar: " << endl;
                 a = todosAsistentes->seleccionarItem();
+                if (a == nullptr) return;
                 i->agregarAsistentes(a);
                 break;
             case 'D':
-                cout << "Seleccione el evento al que se le desea eliminar asistentes: "<< endl;
-                todasInscripciones->seleccionarItem()->eliminarAsistentes();
+                cout << "Seleccione el evento al que se le desea eliminar asistentes: " << endl;
+                i = todasInscripciones->seleccionarItem();
+                if (i == nullptr) return;
+                i->eliminarAsistentes();
                 break;
             default:
+                cout << "Opción no válida." << endl;
                 return;
+        }
+    }
 
+    void PantallaCrearConferencista() {
+        string nombre, especialidad, biografia;
+
+        cout << "Nombre del conferencista: ";
+        cin.ignore();
+        getline(cin, nombre);
+
+        cout << "Especialidad del conferencista: ";
+        getline(cin, especialidad);
+
+        cout << "Biografía del conferencista: ";
+        getline(cin, biografia);
+
+        Conferencista* conferencista = new Conferencista(nombre, especialidad, biografia);
+        todosConferencistas->agregarItem(conferencista);
+        cout << "Conferencista creado con éxito." << endl;
+    }
+    void PantallaOperacionesComparacion() {
+        cout << "Seleccione la operación de comparación:" << endl;
+        cout << "[1] Comparar eventos por fecha" << endl;
+        cout << "[2] Comparar asistentes por número de inscripciones" << endl;
+        cout << "[3] Comparar conferencistas por número de conferencias" << endl;
+        int opcion;
+        cin >> opcion;
+
+        switch(opcion) {
+            case 1:
+                CompararEventos();
+                break;
+            case 2:
+                CompararAsistentes();
+                break;
+            case 3:
+                CompararConferencistas();
+                break;
+            default:
+                cout << "Opción no válida." << endl;
+        }
+    }
+
+    void CompararEventos() {
+        if (todosEventos->tamanioDeLista() < 2) {
+            cout << "Se necesitan al menos dos eventos para comparar." << endl;
+            return;
         }
 
+        cout << "Seleccione el primer evento:" << endl;
+        Evento* evento1 = todosEventos->seleccionarItem();
+        if (evento1 == nullptr) return;
 
-    };
+        cout << "Seleccione el segundo evento:" << endl;
+        Evento* evento2 = todosEventos->seleccionarItem();
+        if (evento2 == nullptr) return;
 
+        if (*evento1 < *evento2) {
+            cout << "El primer evento es anterior al segundo." << endl;
+        } else if (*evento1 > *evento2) {
+            cout << "El primer evento es posterior al segundo." << endl;
+        } else {
+            cout << "Ambos eventos son en la misma fecha." << endl;
+        }
+    }
+
+    void CompararAsistentes() {
+        if (todosAsistentes->tamanioDeLista() < 2) {
+            cout << "Se necesitan al menos dos asistentes para comparar." << endl;
+            return;
+        }
+
+        cout << "Seleccione el primer asistente:" << endl;
+        Asistente* asistente1 = todosAsistentes->seleccionarItem();
+        if (asistente1 == nullptr) return;
+
+        cout << "Seleccione el segundo asistente:" << endl;
+        Asistente* asistente2 = todosAsistentes->seleccionarItem();
+        if (asistente2 == nullptr) return;
+
+        if (*asistente1 < *asistente2) {
+            cout << asistente1->getNombre() << " tiene menos inscripciones que " << asistente2->getNombre() << "." << endl;
+        } else if (*asistente1 > *asistente2) {
+            cout << asistente1->getNombre() << " tiene más inscripciones que " << asistente2->getNombre() << "." << endl;
+        } else {
+            cout << "Ambos asistentes tienen el mismo número de inscripciones." << endl;
+        }
+    }
+
+    void CompararConferencistas() {
+        if (todosConferencistas->tamanioDeLista() < 2) {
+            cout << "Se necesitan al menos dos conferencistas para comparar." << endl;
+            return;
+        }
+
+        cout << "Seleccione el primer conferencista:" << endl;
+        Conferencista* conferencista1 = todosConferencistas->seleccionarItem();
+        if (conferencista1 == nullptr) return;
+
+        cout << "Seleccione el segundo conferencista:" << endl;
+        Conferencista* conferencista2 = todosConferencistas->seleccionarItem();
+        if (conferencista2 == nullptr) return;
+
+        if (*conferencista1 < *conferencista2) {
+            cout << conferencista1->getNombre() << " tiene menos conferencias que " << conferencista2->getNombre() << "." << endl;
+        } else if (*conferencista1 > *conferencista2) {
+            cout << conferencista1->getNombre() << " tiene más conferencias que " << conferencista2->getNombre() << "." << endl;
+        } else {
+            cout << "Ambos conferencistas tienen el mismo número de conferencias." << endl;
+        }
+    }
 };
 
 int main() {
-    auto mainInscripciones = new  GestorInscripciones;
+    auto mainInscripciones = new Gestor<Inscripcion>;
     auto mainEventos = new Gestor<Evento>;
     auto mainConferencia = new Gestor<Conferencia>;
     auto mainConferencista = new Gestor<Conferencista>;
     auto mainAsistentes = new Gestor<Asistente>;
     char sentinela = 0;
-    auto ejemplo1Evento =new Evento("Rural", "Exposicion agropecuaria", "30/9/2024","Santa fe 2280" ,20);
-    auto ejemplo1Inscripcion= new Inscripcion(ejemplo1Evento);
-    auto ejemplo1conferencista= new Conferencista("Rodolfo", "Musico", "Guitarreo toda su vida");
-    auto ejemplo1Taller= new Taller("Muscique", "Taller de musica", "19:00", ejemplo1conferencista, "Guitarra");
-    auto ejemplo1Asistente=new Asistente("Leon", "leon@mail.com");
-    auto ejemplo2Evento =new Evento("Techno", "Exposicion de tecnologia", "11/10/2024","Jorge Newbery 2280" ,15);
-    auto ejemplo2Inscripcion= new Inscripcion(ejemplo2Evento);
-    auto ejemplo2conferencista= new Conferencista("Otto", "Investigador", "Ojo por ojo controlo todo");
-    auto ejemplo2ConferenciaMagistral= new ConferenciaMagistral("Tecnoclan", "Charla de tecnologia", "9:00", ejemplo2conferencista, "Tecnologia");
-    auto ejemplo2Asistente=new Asistente("Carlos", "carlos@mail.net");
-    mainEventos->agregarItem(ejemplo1Evento);
-    mainEventos->agregarItem(ejemplo2Evento);
-    mainInscripciones->agregarItem(ejemplo1Inscripcion);
-    mainInscripciones->agregarItem(ejemplo2Inscripcion);
-    mainConferencista->agregarItem(ejemplo1conferencista);
-    mainConferencista->agregarItem(ejemplo2conferencista);
-    mainConferencia->agregarItem(ejemplo1Taller);
-    mainConferencia->agregarItem(ejemplo2ConferenciaMagistral);
-    mainAsistentes->agregarItem(ejemplo1Asistente);
-    mainAsistentes->agregarItem(ejemplo2Asistente);
-
 
     auto mainMenu = new Menu(mainInscripciones, mainEventos, mainConferencia, mainConferencista, mainAsistentes);
-    do{
-       sentinela = mainMenu->PantallaPrincipal();
-    }while(sentinela != 'T');
+    do {
+        sentinela = mainMenu->PantallaPrincipal();
+    } while(sentinela != 'T');
+
+    delete mainInscripciones;
+    delete mainEventos;
+    delete mainConferencia;
+    delete mainConferencista;
+    delete mainAsistentes;
+    delete mainMenu;
+
     return 0;
+
 }
