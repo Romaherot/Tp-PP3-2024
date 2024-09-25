@@ -33,7 +33,7 @@ public:
             int id = 0;
             int x = 0;
             for (const auto& item : items) {
-                cout << "Identificacion: " << id << ", ";
+                cout << "Id: " << id << ", ";
                 item->mostrarDatos();
                 cout << "-----------------------\n";
                 id++;
@@ -57,7 +57,7 @@ public:
         int id = 0;
         int x = 0;
         for (const auto& item : items) {
-            cout << "Identificacion: " << id << ", ";
+            cout << "Id: " << id << ", ";
             item->mostrarDatos();
             cout << "-----------------------\n";
             id++;
