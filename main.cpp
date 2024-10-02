@@ -142,6 +142,8 @@ public:
     }
 };
 
+class Inscripcion;
+
 // Clase Evento
 class Evento {
 private:
@@ -151,6 +153,7 @@ private:
     string lugar;
     int maxAsistentes;
     Gestor<Conferencia>* confDelEvento = new Gestor<Conferencia>;
+    friend Inscripcion;
 
 public:
     Evento(string t, string d, string f, string l, int m)
@@ -245,7 +248,7 @@ class Asistente {
     string nombre;
     string email;
     string telefono;
-    Gestor<class Inscripcion> *eventosInscriptos = new Gestor<class Inscripcion>;
+    Gestor<Inscripcion> *eventosInscriptos = new Gestor<class Inscripcion>;
     friend class Inscripcion;
 public:
     Asistente(string n, string e, string t) : nombre(n), email(e), telefono(t) {}
@@ -284,6 +287,7 @@ public:
     }
 };
 
+
 // Clase Inscripcion
 class Inscripcion {
     Evento* evento;
@@ -299,10 +303,14 @@ public:
         asistInscriptos->mostrarItems();
     }
     void agregarAsistentes(Asistente* a){
+    if(evento->maxAsistentes>asistInscriptos->tamanioDeLista()) {
         asistInscriptos->agregarItem(a);
-        a->agregarInscripcion(this);
-        cout << "Asistente añadido con éxito" << endl;
+        a->eventosInscriptos->agregarItem(this);
+        cout << "Asistente añadido con exito" << endl;
     }
+    else
+    cout << "Asistente no añadido: Evento lleno" << endl;
+}
     void eliminarAsistentes(){
         asistInscriptos->eliminarItem();
     }
@@ -311,6 +319,7 @@ public:
         delete asistInscriptos;
     }
 };
+
 
 class Menu {
 private:
