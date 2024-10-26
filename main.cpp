@@ -374,6 +374,11 @@ public:
                     system("CLS");
                     cout << "Tecla no reconocida" << endl;
             }
+            cout << "Presione enter para continuar." << endl;
+            cin.clear();
+            cin.get();
+            cin.get();
+            system("CLS");
         } while(eleccion != 'T');
         return 'T';
     }
@@ -397,8 +402,6 @@ public:
         Evento* evento = new Evento(titulo, descripcion, fecha, lugar, maxAsistentes);
         todosEventos->agregarItem(evento);
         todasInscripciones->agregarItem(new Inscripcion(evento));
-        cin.clear();
-        system("CLS");
         cout << "Evento creado con éxito." << endl;
     }
 
@@ -455,8 +458,6 @@ public:
 
         todasConferencias->agregarItem(conferencia);
         evento->agregarConferencia(conferencia);
-        cin.clear();
-        system("CLS");
         cout << "Conferencia registrada con éxito." << endl;
 
     }
@@ -472,16 +473,11 @@ public:
         getline(cin, telefono);
         Asistente* asistente = new Asistente(nombre, email, telefono);
         todosAsistentes->agregarItem(asistente);
-        system("CLS");
         cout << "Asistente registrado con éxito." << endl;
     }
 
     void PantallaConsulta(){
         todasConferencias->mostrarItems();
-        cin.clear();
-        cin.get();
-        cin.get();
-        system("CLS");
     }
 
     void PantallaInscripciones(){
@@ -517,10 +513,6 @@ public:
                 cout << "Opción no válida." << endl;
                 return;
         }
-        cin.clear();
-        cin.get();
-        cin.get();
-        system("CLS");
     }
 
     void PantallaCrearConferencista() {
@@ -538,10 +530,6 @@ public:
 
         Conferencista* conferencista = new Conferencista(nombre, especialidad, biografia);
         todosConferencistas->agregarItem(conferencista);
-        cin.clear();
-        cin.get();
-        cin.get();
-        system("CLS");
         cout << "Conferencista creado con éxito." << endl;
     }
     void PantallaOperacionesComparacion() {
@@ -565,10 +553,6 @@ public:
             default:
                 cout << "Opción no válida." << endl;
         }
-        cin.clear();
-        cin.get();
-        cin.get();
-        system("CLS");
     }
 
     void CompararEventos() {
