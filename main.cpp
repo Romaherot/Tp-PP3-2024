@@ -248,7 +248,7 @@ class Asistente {
     string nombre;
     string email;
     string telefono;
-    Gestor<Inscripcion> *eventosInscriptos = new Gestor<class Inscripcion>;
+    Gestor<Inscripcion> *eventosInscriptos = new Gestor<Inscripcion>;
     friend class Inscripcion;
 public:
     Asistente(string n, string e, string t) : nombre(n), email(e), telefono(t) {}
@@ -335,33 +335,43 @@ public:
 
     char PantallaPrincipal(){
         do {
-            cout << "Creacion de [E]vento, [R]egistro de Conferencias, Registro de [A]sistentes, [C]onsulta de Conferencias, Registro de [I]nscripciones, Crear Conferenci[S]ta, [O]peraciones de comparación,  [T]erminar programa" << endl;
+            cout <<  "\033[1m|=================================|\033[0m" << endl;
+            cout <<  "\033[1m1)\033[0mCreacion de Evento\n"
+                    "\033[1m2)\033[0mRegistro de Conferencias\n"
+                    "\033[1m3)\033[0mRegistro de Asistentes\n"
+                    "\033[1m4)\033[0mConsulta de Conferencias\n"
+                    "\033[1m5)\033[0mRegistro de Inscripciones\n"
+                    "\033[1m6)\033[0mCrear Conferencista\n"
+                    "\033[1m7)\033[0mOperaciones de comparación\n"
+                    "\033[1m8)\033[0mTerminar programa" << endl;
+            cout <<  "\033[1m|---------------------------------|\033[0m" << endl;
             cin >> eleccion;
             switch (eleccion) {
-                case 'E':
+                case '1':
                     PantallaEventos();
                     break;
-                case 'R':
+                case '2':
                     PantallaRegistroConferencias();
                     break;
-                case 'C':
+                case '3':
                     PantallaConsulta();
                     break;
-                case 'I':
+                case '4':
                     PantallaInscripciones();
                     break;
-                case 'A':
+                case '5':
                     PantallaRegistroAsistentes();
                     break;
-                case 'S':
+                case '6':
                     PantallaCrearConferencista();
                     break;
-                case 'O':
+                case '7':
                     PantallaOperacionesComparacion();
                     break;
-                case 'T':
+                case '8':
                     return 'T';
                 default:
+                    system("CLS");
                     cout << "Tecla no reconocida" << endl;
             }
         } while(eleccion != 'T');
@@ -387,6 +397,8 @@ public:
         Evento* evento = new Evento(titulo, descripcion, fecha, lugar, maxAsistentes);
         todosEventos->agregarItem(evento);
         todasInscripciones->agregarItem(new Inscripcion(evento));
+        cin.clear();
+        system("CLS");
         cout << "Evento creado con éxito." << endl;
     }
 
@@ -443,7 +455,10 @@ public:
 
         todasConferencias->agregarItem(conferencia);
         evento->agregarConferencia(conferencia);
+        cin.clear();
+        system("CLS");
         cout << "Conferencia registrada con éxito." << endl;
+
     }
 
     void PantallaRegistroAsistentes(){
@@ -457,11 +472,16 @@ public:
         getline(cin, telefono);
         Asistente* asistente = new Asistente(nombre, email, telefono);
         todosAsistentes->agregarItem(asistente);
+        system("CLS");
         cout << "Asistente registrado con éxito." << endl;
     }
 
     void PantallaConsulta(){
         todasConferencias->mostrarItems();
+        cin.clear();
+        cin.get();
+        cin.get();
+        system("CLS");
     }
 
     void PantallaInscripciones(){
@@ -485,6 +505,7 @@ public:
                 a = todosAsistentes->seleccionarItem();
                 if (a == nullptr) return;
                 i->agregarAsistentes(a);
+                a->agregarInscripcion(i);
                 break;
             case 'D':
                 cout << "Seleccione el evento al que se le desea eliminar asistentes: " << endl;
@@ -496,6 +517,10 @@ public:
                 cout << "Opción no válida." << endl;
                 return;
         }
+        cin.clear();
+        cin.get();
+        cin.get();
+        system("CLS");
     }
 
     void PantallaCrearConferencista() {
@@ -513,6 +538,10 @@ public:
 
         Conferencista* conferencista = new Conferencista(nombre, especialidad, biografia);
         todosConferencistas->agregarItem(conferencista);
+        cin.clear();
+        cin.get();
+        cin.get();
+        system("CLS");
         cout << "Conferencista creado con éxito." << endl;
     }
     void PantallaOperacionesComparacion() {
@@ -536,6 +565,10 @@ public:
             default:
                 cout << "Opción no válida." << endl;
         }
+        cin.clear();
+        cin.get();
+        cin.get();
+        system("CLS");
     }
 
     void CompararEventos() {
@@ -614,19 +647,13 @@ int main() {
     auto mainConferencia = new Gestor<Conferencia>;
     auto mainConferencista = new Gestor<Conferencista>;
     auto mainAsistentes = new Gestor<Asistente>;
-    char sentinela = 0;
+    char centinela = 0;
 
     auto mainMenu = new Menu(mainInscripciones, mainEventos, mainConferencia, mainConferencista, mainAsistentes);
     do {
-        sentinela = mainMenu->PantallaPrincipal();
-    } while(sentinela != 'T');
+        centinela = mainMenu->PantallaPrincipal();
+    } while(centinela != 'T');
 
-    delete mainInscripciones;
-    delete mainEventos;
-    delete mainConferencia;
-    delete mainConferencista;
-    delete mainAsistentes;
-    delete mainMenu;
 
     return 0;
 
