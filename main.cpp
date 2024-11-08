@@ -354,13 +354,13 @@ public:
                     PantallaRegistroConferencias();
                     break;
                 case '3':
-                    PantallaConsulta();
+                    PantallaRegistroAsistentes();
                     break;
                 case '4':
-                    PantallaInscripciones();
+                    PantallaConsulta();
                     break;
                 case '5':
-                    PantallaRegistroAsistentes();
+                    PantallaInscripciones();
                     break;
                 case '6':
                     PantallaCrearConferencista();
@@ -533,10 +533,12 @@ public:
         cout << "Conferencista creado con éxito." << endl;
     }
     void PantallaOperacionesComparacion() {
+        cout <<  "\033[1m|---------------------------------|\033[0m" << endl;
         cout << "Seleccione la operación de comparación:" << endl;
-        cout << "[1] Comparar eventos por fecha" << endl;
-        cout << "[2] Comparar asistentes por número de inscripciones" << endl;
-        cout << "[3] Comparar conferencistas por número de conferencias" << endl;
+        cout <<  "\033[1m1)\033[0mComparar eventos por fecha\n"
+                 "\033[1m2)\033[0mComparar asistentes por número de inscripciones\n"
+                 "\033[1m3)\033[0mComparar conferencistas por número de conferencias"<< endl;
+        cout <<  "\033[1m|---------------------------------|\033[0m" << endl;
         int opcion;
         cin >> opcion;
 
